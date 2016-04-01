@@ -88,12 +88,26 @@ public class MainActivity extends AppCompatActivity {
 
         String url = serverUrl + urlEnd;
 
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                (response) ->
-                    Toast.makeText(context, "Success!", Toast.LENGTH_SHORT).show()
-                ,
-                (error) ->
-                    Toast.makeText(context, "Fuckup!", Toast.LENGTH_SHORT).show());
+        Response.Listener listener = new Response.Listener() {
+            @Override
+            public void onResponse(Object response) {
+                Toast.makeText(context, "Success!", Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        Response.ErrorListener errorListener = new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(context, "Fuckup!", Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        StringRequest stringRequest = new StringRequest(
+                Request.Method.GET,
+                url,
+                listener,
+                errorListener
+        );
 
 
         stringRequest.setRetryPolicy(
