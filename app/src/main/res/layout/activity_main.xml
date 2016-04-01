@@ -19,13 +19,6 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/buttonSetUp"
-        android:text="@string/buttonSetUp"
-        android:layout_centerHorizontal="true" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:id="@+id/buttonDown"
         android:text="@string/buttonDown"
         android:layout_centerHorizontal="true"

@@ -27,7 +27,6 @@ public class MainActivity extends AppCompatActivity {
     private final int BUTTON_DOWN_TAG = 2;
     private final int BUTTON_LEFT_TAG = 3;
     private final int BUTTON_RIGHT_TAG = 4;
-    private final int BUTTON_SETUP_TAG = 5;
 
     private Context context;
     private ImageView imageView;
@@ -45,28 +44,22 @@ public class MainActivity extends AppCompatActivity {
         Button buttonDown = (Button)findViewById(R.id.buttonDown);
         Button buttonLeft = (Button)findViewById(R.id.buttonLeft);
         Button buttonRight = (Button)findViewById(R.id.buttonRight);
-        Button buttonSetUp = (Button)findViewById(R.id.buttonSetUp);
 
         buttonUp.setTag(BUTTON_UP_TAG);
         buttonDown.setTag(BUTTON_DOWN_TAG);
         buttonLeft.setTag(BUTTON_LEFT_TAG);
         buttonRight.setTag(BUTTON_RIGHT_TAG);
-        buttonSetUp.setTag(BUTTON_SETUP_TAG);
 
         Button.OnTouchListener onTouchListener = OnTouchListener();
-        Button.OnClickListener onClickListener = OnClickListener();
         buttonUp.setOnTouchListener(onTouchListener);
         buttonDown.setOnTouchListener(onTouchListener);
         buttonLeft.setOnTouchListener(onTouchListener);
         buttonRight.setOnTouchListener(onTouchListener);
-        buttonSetUp.setOnClickListener(onClickListener);
 
         context = this;
         imageView = (ImageView)findViewById(R.id.backgroundImage);
 
         serverUrl = http + PreferenceManager.getDefaultSharedPreferences(this).getString("serverIp","192.168.42.1");
-
-        buttonDown.setEnabled(false);
     }
 
     @Override
@@ -96,24 +89,30 @@ public class MainActivity extends AppCompatActivity {
         String url = serverUrl + urlEnd;
 
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        Toast.makeText(context, "Success!", Toast.LENGTH_SHORT).show();
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Toast.makeText(context, "Fuckup!", Toast.LENGTH_SHORT).show();
-            }
-        });
+                (response) ->
+                    Toast.makeText(context, "Success!", Toast.LENGTH_SHORT).show()
+                ,
+                (error) ->
+                    Toast.makeText(context, "Fuckup!", Toast.LENGTH_SHORT).show());
 
-        stringRequest.setRetryPolicy(new DefaultRetryPolicy(DefaultRetryPolicy.DEFAULT_TIMEOUT_MS, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+        stringRequest.setRetryPolicy(
+                new DefaultRetryPolicy(
+                        DefaultRetryPolicy.DEFAULT_TIMEOUT_MS,
+                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+                )
+        );
 
         queue.add(stringRequest);
     }
 
     private void moveForward() {
+        send("/move.php?move=back");
+        imageView.setImageResource(R.drawable.trump3);
+    }
+
+    private void moveBack() {
         send("/move.php?move=true");
         imageView.setImageResource(R.drawable.trump3);
     }
@@ -142,16 +141,12 @@ public class MainActivity extends AppCompatActivity {
         send(url);
     }
 
-    private void setUp() {
-        send("/startUp.php");
-    }
-
     private Button.OnTouchListener OnTouchListener() {
         return new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
 
-                boolean press = true, upOrDown = false;
+                boolean press = true, upOrDown;
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         upOrDown = true;
@@ -179,7 +174,11 @@ public class MainActivity extends AppCompatActivity {
                             break;
 
                         case BUTTON_DOWN_TAG:
-                            // Plaah poop
+                            if (press) {
+                                moveBack();
+                            } else {
+                                stop();
+                            }
                             break;
 
                         case BUTTON_LEFT_TAG:
@@ -204,25 +203,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 return false;
-            }
-        };
-    }
-
-    private Button.OnClickListener OnClickListener() {
-        return new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int tag = (int)v.getTag();
-                if (tag == BUTTON_SETUP_TAG) {
-                    if (!PreferenceManager.getDefaultSharedPreferences(context).getBoolean("systemStarted",false)) {
-                        setUp();
-
-                        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
-                        SharedPreferences.Editor editor = sharedPref.edit();
-                        editor.putBoolean("systemStarted", true);
-                        editor.commit();
-                    }
-                }
             }
         };
     }
